@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Resources:
+  SaveStudentFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: .
+      Handler: save_student.lambda_handler
+      Runtime: python3.11
+      Events:
+        SaveStudentAPI:
+          Type: Api
+          Properties:
+            Path: /save-student
+            Method: post
+  GetStudentFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: .
+      Handler: get_student.lambda_handler
+      Runtime: python3.11
+      Events:
+        GetStudentAPI:
+          Type: Api
+          Properties:
+            Path: /get-student
+            Method: get
+  StudentDBTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: StudentDB
+      AttributeDefinitions:
+        - AttributeName: student_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: student_id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+  ApiGateway:
+    Type: 'AWS::Serverless::Api'
+    Properties:
+      StageName: prod
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          title: StudentDB API
+          version: '1.0'
+        paths:
+          /save-student:
+            post:
+              x-amazon-apigateway-integration:
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SaveStudentFunction.Arn}/invocations
+                passthroughBehavior: when_no_match
+                httpMethod: POST
+                type: aws_proxy
+          /get-student:
+            get:
+              x-amazon-apigateway-integration:
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetStudentFunction.Arn}/invocations
+                passthroughBehavior: when_no_match
+                httpMethod: POST
+                type: aws_proxy
