@@ -1,5 +1,5 @@
-# Deploy Lambda function through CI/CD
-name: Deploy Lambda Function
+# Deploy apigateway through CI/CD
+name: Deploy assg2 Function
 
 on:
   push:
